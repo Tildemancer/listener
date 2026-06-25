@@ -353,6 +353,9 @@ local TIMESTAMP = {
 -- Normal "name: text"
 local function MsgFormatNormal( e, name )
 	local prefix = MSG_FORMAT_PREFIX[e.e] or ""
+	if e.dmn then
+		return prefix .. name .. " " .. e.m
+	end
 	return prefix .. name .. ": " .. e.m
 end
 
@@ -384,8 +387,15 @@ end
 -------------------------------------------------------------------------------
 -- No separator between name and text.
 local function MsgFormatEmote( e, name )
-	if Main.db.profile.trp_emotes and e.m:sub(1,3) == "|| " then
-		return e.m:sub( 4 )
+	if e.dmn then
+		return name .. " " .. e.m
+	end
+	if e.dma then
+		return e.m
+	end
+	local pipe_emote = Main.StripPipeEmotePrefix( e.m )
+	if Main.db.profile.trp_emotes and pipe_emote ~= nil then
+		return pipe_emote
 	end
 	if e.m:sub( 1,2 ) == ", " or e.m:sub( 1,2 ) == "'s" then
 		return name .. e.m
@@ -396,6 +406,9 @@ end
 -------------------------------------------------------------------------------
 -- <name> <msg> - name is substituted
 local function MsgFormatTextEmote( e, name )
+	if e.dmn then
+		return name .. " " .. e.m
+	end
 	if e.s == "" then return e.m end -- Some dumb global emote by bosses.
 	
 	-- Need to convert - to %- to avoid it triggering a pattern and
@@ -469,13 +482,19 @@ function Method:FormatChatMessage( e )
 		stamp = "|cff808080" .. TIMESTAMP[ts](e.t) .. "|r" 
 	end
 	
-	-- get icon and name 
-	local name, shortname, icon, color = LibRPNames.Get( e.s, Main.guidmap[e.s] )
+	local custom_speaker = e.dmn ~= nil
+	local anonymous_speaker = e.dma ~= nil
+	local name, shortname, icon, color
+	if custom_speaker then
+		name, shortname, icon, color = e.dmn, e.dms or e.dmn, e.dmi, e.dmc
+	else
+		name, shortname, icon, color = LibRPNames.Get( e.s, Main.guidmap[e.s] )
+	end
 	if Main.db.profile.shorten_names then
 		name = shortname
 	end
 	
-	if not icon then
+	if not icon and not custom_speaker and not anonymous_speaker then
 		local alliance = UnitFactionGroup( "player" ) == "Alliance"
 		if e.h then
 			alliance = not alliance
@@ -488,11 +507,7 @@ function Method:FormatChatMessage( e )
 	end
 	
 	if icon and Main.db.profile.frame.show_icons then
-		if Main.db.profile.frame.zoom_icons then
-			icon = "|TInterface\\Icons\\" .. icon .. ":0:0:0:0:100:100:10:90:10:90:255:255:255|t "
-		else
-			icon = "|TInterface\\Icons\\" .. icon .. ":0|t "
-		end
+		icon = Main.FormatIconMarkup( icon, Main.db.profile.frame.zoom_icons )
 	else
 		icon = ""
 	end
@@ -501,7 +516,9 @@ function Method:FormatChatMessage( e )
 		name = "|c" .. color .. name .. "|r"
 	end
 	
-	name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h" 
+	if not custom_speaker and not anonymous_speaker then
+		name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h" 
+	end
 	
 	return string.format( "%s%s%s", stamp, icon, MSG_FORMAT_FUNCTIONS[e.e]( e, name ) )
 end
