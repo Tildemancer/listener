@@ -113,16 +113,29 @@ function Me.HookFrames()
 	local frame = nil
 	
 	local list = {}
+
+	local function SafeCall( object, method, ... )
+		if not object or not object[method] then return nil end
+		local ok, value = pcall( object[method], object, ... )
+		if not ok or not canaccessvalue( value ) then return nil end
+		return value
+	end
 	
 	while true do
 		frame = EnumerateFrames( frame )
 		if not frame then break end
 		
-		if frame:IsVisible() and frame:HasScript( "OnClick" ) 
-		   and frame:GetScript( "OnClick" ) == SecureUnitButton_OnClick then
+		local visible = SafeCall( frame, "IsVisible" )
+		local has_click = SafeCall( frame, "HasScript", "OnClick" )
+		local onclick = nil
+		if has_click then
+			onclick = SafeCall( frame, "GetScript", "OnClick" )
+		end
+
+		if visible and has_click and onclick == SecureUnitButton_OnClick then
 		   
-			local unit = frame:GetAttribute( "unit" )
-			if unit and canaccessvalue(UnitName( unit )) then
+			local unit = SafeCall( frame, "GetAttribute", "unit" )
+			if type( unit ) == "string" and canaccessvalue( UnitName( unit ) ) then
 				if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
 					local name = Main.FullName( unit )
 					
