@@ -87,6 +87,25 @@ function Me.LoadFont()
 end
 
 -------------------------------------------------------------------------------
+-- Safely test values returned by secure/protected UI APIs.
+--
+-- Newer WoW clients can return "secret" values from protected frames when an
+-- addon has tainted execution. Directly testing those values, e.g.
+-- `if frame:IsVisible() then`, can raise "attempt to perform boolean test on a
+-- secret boolean value". Guard all such tests with canaccessvalue first.
+--
+local function IsAccessible( value )
+	if type( canaccessvalue ) == "function" then
+		return canaccessvalue( value )
+	end
+	return true
+end
+
+local function SafeTruthy( value )
+	return IsAccessible( value ) and value
+end
+
+-------------------------------------------------------------------------------
 -- Enable/disable DM Tags.
 --
 function Me.Enable( enabled )
@@ -113,45 +132,37 @@ function Me.HookFrames()
 	local frame = nil
 	
 	local list = {}
-
-	local function SafeCall( object, method, ... )
-		if not object or not object[method] then return nil end
-		local ok, value = pcall( object[method], object, ... )
-		if not ok or not canaccessvalue( value ) then return nil end
-		return value
-	end
 	
 	while true do
 		frame = EnumerateFrames( frame )
 		if not frame then break end
 		
-		local visible = SafeCall( frame, "IsVisible" )
-		local has_click = SafeCall( frame, "HasScript", "OnClick" )
-		local onclick = nil
-		if has_click then
-			onclick = SafeCall( frame, "GetScript", "OnClick" )
-		end
-
-		if visible and has_click and onclick == SecureUnitButton_OnClick then
-		   
-			local unit = SafeCall( frame, "GetAttribute", "unit" )
-			if type( unit ) == "string" and canaccessvalue( UnitName( unit ) ) then
-				if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
-					local name = Main.FullName( unit )
-					
-					if name then
-						if not list[name] then
-							list[name] = {
-								frames = {}
-							}
-						end
+		local visible = frame:IsVisible()
+		local has_onclick = frame:HasScript( "OnClick" )
+		
+		if SafeTruthy( visible ) and SafeTruthy( has_onclick ) then
+			local onclick = frame:GetScript( "OnClick" )
+			
+			if IsAccessible( onclick ) and onclick == SecureUnitButton_OnClick then
+				local unit = frame:GetAttribute( "unit" )
+				
+				if SafeTruthy( unit ) and IsAccessible( UnitName( unit ) ) then
+					if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
+						local name = Main.FullName( unit )
 						
-						table.insert( list[name].frames, frame )
+						if name then
+							if not list[name] then
+								list[name] = {
+									frames = {}
+								}
+							end
+							
+							table.insert( list[name].frames, frame )
+						end
 					end
 				end
+				--thanks Semler!
 			end
-			--thanks Semler!
-			
 		end
 	end
 	
