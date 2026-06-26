@@ -117,13 +117,12 @@ function Me.HookFrames()
 	while true do
 		frame = EnumerateFrames( frame )
 		if not frame then break end
-		if not canaccessvalue(UnitName( unit )) then break end
 		
 		if frame:IsVisible() and frame:HasScript( "OnClick" ) 
 		   and frame:GetScript( "OnClick" ) == SecureUnitButton_OnClick then
 		   
 			local unit = frame:GetAttribute( "unit" )
-			if unit then
+			if unit and canaccessvalue(UnitName( unit )) then
 				if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
 					local name = Main.FullName( unit )
 					
