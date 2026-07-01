@@ -99,6 +99,17 @@ local function GetTRPNPCMessageName( lineID )
 	end
 end
 
+local function GetTRPOwnershipEmotePrefix( lineID )
+	if lineID == nil then return nil end
+
+	local trp = _G.TRP3_API
+	if not trp or not trp.chat or not trp.chat.getOwnershipNameID then return nil end
+
+	if trp.chat.getOwnershipNameID() == lineID then
+		return "'s "
+	end
+end
+
 local function GetTRPNPCTalkPatterns()
 	local patterns = {}
 	local trp = _G.TRP3_API
@@ -827,6 +838,15 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 		return
 	end	
 	
+	local originalEmotePrefix
+	if event == "EMOTE" then
+		if message:sub(1, 3) == "'s " then
+			originalEmotePrefix = "'s "
+		elseif message:sub(1, 2) == ", " then
+			originalEmotePrefix = ", "
+		end
+	end
+	
 	if filters then -- in a rare case with very little addons, the filter
 	                -- list may actually be nil
 					
@@ -866,6 +886,16 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 				end
 			end
 		end
+	end
+
+	-- TRP3 removes leading "'s " from emotes and records the line ID so its
+	-- name formatter can append the suffix directly to the displayed name.
+	-- Listener renders from its own stored message instead, so restore the
+	-- prefix from TRP3's public line-ID flag when Listener receives the already
+	-- filtered message.
+	local trpEmotePrefix = originalEmotePrefix or GetTRPOwnershipEmotePrefix( a11 )
+	if event == "EMOTE" and trpEmotePrefix and message:sub(1, #trpEmotePrefix) ~= trpEmotePrefix then
+		message = trpEmotePrefix .. message
 	end
 	
 	local dm_info
