@@ -1,7 +1,4 @@
 curse-project-id: 100697
 name: Listener
 export:
-  Listener: addon
-  Listener/libs: libs
-  Listener/sounds: sounds
-  Listener/texture: texture
+  Listener: .

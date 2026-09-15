@@ -736,16 +736,24 @@ function Main:OnChatMsgTextEmote( event, message, sender, language,
 		if realm ~= nil then
 			-- delete trailing "'s"
 			realm = realm:gsub( "'s$", "" )
-			
+
 			sender = sender .. "-" .. realm
 		end
-	end
-	
-	-- something to consider is that chat event filters might
-	-- remove this message, for whatever reason, and it might still
-	-- make a poke sound.
-	if guid ~= UnitGUID( "player" ) then
+
+		-- something to consider is that chat event filters might
+		-- remove this message, for whatever reason, and it might still
+		-- make a poke sound.
 		Main.CheckPoke( message, sender )
+	else
+		-- Standard text emotes (e.g. /hug) don't always hand back the exact
+		-- same sender string that other events use for the local player
+		-- (case/realm formatting can differ, and other chat filters running
+		-- ahead of ours in the ChatFrame filter chain can rewrite it too).
+		-- Since the GUID already confirms this is our own emote, force the
+		-- sender back to our canonical name so it matches the "self" entry
+		-- in the player filter (players[UnitName("player")]) instead of
+		-- being treated like a message from an unrecognized player.
+		sender = Main.FullName( "player" )
 	end
 	
 	-- and then when that's all good and done, we forward it to the normal
