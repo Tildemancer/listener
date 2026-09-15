@@ -277,6 +277,11 @@ end
 -- Returns true if an entry should be displayed according to event filters.
 --
 local function EntryFilter( self, entry )
+	if entry.npc then
+		-- NPC speech can arrive over any channel, so it gets its own filter
+		-- instead of following the channel's category.
+		return self.listen_events.NPC
+	end
 	if entry.c then
 		if entry.e == "CHANNEL" then 
 			return self.listen_events[ "#" .. entry.c ]
@@ -418,6 +423,16 @@ local function MsgFormatTextEmote( e, name )
 end
 
 -------------------------------------------------------------------------------
+-- NPC emotes carry a %s where the NPC's name goes.
+local function MsgFormatNPCEmote( e, name )
+	local msg, count = e.m:gsub( "%%s", (name:gsub( "%%", "%%%%" )) )
+	if count == 0 then
+		return name .. " " .. e.m
+	end
+	return msg
+end
+
+-------------------------------------------------------------------------------
 -- x joined/left channel.
 local function MsgFormatJoinLeave( e, name )
 	local prefix = "[" .. GetChannelName( e.c ) .. "] "
@@ -462,7 +477,10 @@ local MSG_FORMAT_FUNCTIONS = {
 	
 	TEXT_EMOTE = MsgFormatTextEmote;
 	ROLL       = MsgFormatTextEmote;
-	
+
+	MONSTER_EMOTE   = MsgFormatNPCEmote;
+	RAID_BOSS_EMOTE = MsgFormatNPCEmote;
+
 	GUILD_MOTD = MsgFormatGuildMOTD;
 }
 
@@ -516,8 +534,8 @@ function Method:FormatChatMessage( e )
 		name = "|c" .. color .. name .. "|r"
 	end
 	
-	if not custom_speaker and not anonymous_speaker then
-		name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h" 
+	if not custom_speaker and not anonymous_speaker and not e.npc then
+		name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h"
 	end
 	
 	return string.format( "%s%s%s", stamp, icon, MSG_FORMAT_FUNCTIONS[e.e]( e, name ) )
@@ -1276,9 +1294,9 @@ end
 function Method:SetListenAll( listen_all )
 	listen_all = not not listen_all
 	if self.charopts.listen_all == listen_all then return end
-	
+
 	self.charopts.listen_all = listen_all
-	
+
 	self:RefreshChat()
 	self:UpdateProbe()
 end

@@ -33,6 +33,21 @@ local IGNORED_CHANNELS = {
 	xtensionxtooltip2 = true -- Common addon channel.
 }
 
+-------------------------------------------------------------------------------
+-- NPC chat events (with the CHAT_MSG_ prefix stripped). These are registered
+-- as real events rather than ChatFrame message filters, because filters only
+-- fire when a chat tab is set to display creature messages.
+--
+local NPC_EVENTS = {
+	MONSTER_SAY       = true;
+	MONSTER_YELL      = true;
+	MONSTER_EMOTE     = true;
+	MONSTER_WHISPER   = true;
+	MONSTER_PARTY     = true;
+	RAID_BOSS_EMOTE   = true;
+	RAID_BOSS_WHISPER = true;
+}
+
 
 local function TrimString( value )
 	if strtrim then return strtrim( value ) end
@@ -1191,6 +1206,15 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel, d
 		entry.dmi = dm_info.icon
 		entry.dmc = dm_info.color
 	end
+
+	-- Actual NPC speech, as opposed to RP dialogue (TRP3 NPC talk, DM tags)
+	-- relayed through a real player's own message, which keeps its
+	-- "Player-..." guid. Monster events are NPC speech even when they don't
+	-- carry a guid; a non-player guid also catches NPCs (e.g. delve
+	-- companions) talking over ordinary channels like PARTY.
+	if NPC_EVENTS[event] or (guid and guid ~= "" and not guid:match( "^Player%-" )) then
+		entry.npc = true
+	end
 	
 	if event:find( "CHANNEL" ) then
 		if not channel then return end
@@ -1701,6 +1725,10 @@ function Main:OnEnable()
 		for _,evt in ipairs( chatEvents ) do
 			ChatFrame_AddMessageEventFilter( evt, Main.ChatFrameFilter )
 		end
+	end
+
+	for evt in pairs( NPC_EVENTS ) do
+		Main:RegisterEvent( "CHAT_MSG_" .. evt, "OnChatMsg" )
 	end
 	Main:RegisterEvent( "GUILD_MOTD",                    "OnGuildMOTD" )
 	Main:RegisterEvent( "CHAT_MSG_SYSTEM",               "OnSystemMsg" )

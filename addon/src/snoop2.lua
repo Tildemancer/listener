@@ -27,7 +27,7 @@ local g_update_time = 0
 function Me.Setup()
 
 	Main.RegisterFilterMenu( "SNOOPER",
-		{ "Public", "Party", "Raid", "Raid Warning", "Instance", 
+		{ "Public", "NPC", "Party", "Raid", "Raid Warning", "Instance",
 		  "Guild", "Officer", "Rolls", "Whisper", "Channel", "CrossRP" },
 		function( filter )
 			return Main.frames[2].charopts.filter[filter]
@@ -93,7 +93,7 @@ function Me.OnUpdate( self )
 	
 	if self.frameopts.hidecombat and InCombatLockdown() then return end
 	
-	local name = (IsShiftKeyDown() or self.mouseon) and g_current_name or Main.GetProbed()
+	local name = (IsShiftKeyDown() or self.mouseon) and g_current_name or Main.GetProbed() or Main.GetProbedNPC()
 	if self.frameopts.target_only and not UnitExists( "target" ) then
 		name = nil
 	end
@@ -269,6 +269,17 @@ local function MsgFormatTextEmote( e, name )
 end
 
 -------------------------------------------------------------------------------
+-- NPC emotes carry a %s where the NPC's name goes.
+--
+local function MsgFormatNPCEmote( e, name )
+	local msg, count = e.m:gsub( "%%s", (name:gsub( "%%", "%%%%" )) )
+	if count == 0 then
+		return name .. " " .. e.m
+	end
+	return msg
+end
+
+-------------------------------------------------------------------------------
 -- Function table for formatting events.
 --
 local MSG_FORMAT_FUNCTIONS = {
@@ -299,6 +310,9 @@ local MSG_FORMAT_FUNCTIONS = {
 	
 	TEXT_EMOTE = MsgFormatTextEmote;
 	ROLL       = MsgFormatTextEmote;
+
+	MONSTER_EMOTE   = MsgFormatNPCEmote;
+	RAID_BOSS_EMOTE = MsgFormatNPCEmote;
 }
 
 -------------------------------------------------------------------------------
@@ -362,7 +376,7 @@ function Me:FormatChatMessage( e )
 		name = "|c" .. color .. name .. "|r"
 	end
 	
-	if self.frameopts.enable_mouse and not custom_speaker then
+	if self.frameopts.enable_mouse and not custom_speaker and not e.npc then
 		-- we only make links for players when the mouse is enabled.
 		name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h"
 	end
