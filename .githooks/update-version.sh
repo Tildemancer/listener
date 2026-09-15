@@ -16,7 +16,7 @@ set -eu
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 
-toc="Listener.toc"
+toc="addon/Listener.toc"
 [ -f "$toc" ] || exit 0
 
 version="$(git describe --tags --always --dirty 2>/dev/null || true)"
