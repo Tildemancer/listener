@@ -37,6 +37,17 @@ local function GetHexCode( color )
 end
 
 -------------------------------------------------------------------------------
+-- Text hidden from the triggers, in this order.
+-- Links first, since they hold color codes of their own
+--
+local HIDDEN_CODES = {
+	"(|cff[0-9a-f]+|H[^|]+|h[^|]+|h|r)";
+	"|c%x%x%x%x%x%x%x%x";
+	"|cn[^:]+:";
+	"|r";
+}
+
+-------------------------------------------------------------------------------
 -- This is a list of events that we want to hook for the filter.
 -- Actual event is CHAT_MSG_<entry>
 --
@@ -68,13 +79,23 @@ function Main.HighlightKeywords( msg, sender )
 
 	local original = msg
 	local replaced = {}
-	
-	-- First we hide any links found, since we don't want to corrupt them.
-	msg = msg:gsub( "(|cff[0-9a-f]+|H[^|]+|h[^|]+|h|r)", function( link )
-		table.insert( replaced, link )
-		return "\001\001" .. #replaced .. "\001\001"
-	end)
-	
+	local function hide( text )
+		table.insert( replaced, text )
+		return "\001\002" .. #replaced .. "\002\001"
+	end
+	local function restore( text )
+		return (text:gsub( "\001\002(%d+)\002\001", function( index )
+			return replaced[tonumber(index)]
+		end))
+	end
+
+	-- First we hide any links and color codes found, since we don't want to
+	-- corrupt them.
+	-- Triggers take \001 as a word boundary, so a keyword next to a hidden code matches
+	for _, pattern in ipairs( HIDDEN_CODES ) do
+		msg = msg:gsub( pattern, hide )
+	end
+
 	-- We pad with space so that word boundaries at start and end are found.
 	msg = " " .. msg .. " "
 	
@@ -89,8 +110,7 @@ function Main.HighlightKeywords( msg, sender )
 				-- and then removed from the string, to be added later after
 				-- all filtering is done, to prevent keyword collisions.
 				--
-				table.insert( replaced, g_color .. b .. "|r" )
-				return a .. "\001\001" .. #replaced .. "\001\001" .. c
+				return a .. hide( g_color .. restore( b ) .. "|r" ) .. c
 			end)
 			
 			if subs > 0 then
@@ -120,9 +140,7 @@ function Main.HighlightKeywords( msg, sender )
 	if found then
 		-- If we found any matching keywords, rebuild the message with the
 		-- saved strings.
-		msg = msg:gsub( "\001\001(%d+)\001\001", function( index )
-			return replaced[tonumber(index)]
-		end)
+		msg = restore( msg )
 		
 		-- msg:sub is to remove the spaces we added as padding.
 		return msg:sub( 2, msg:len() - 1 ), true
@@ -186,7 +204,7 @@ function Main.LoadKeywordsConfig()
 				end)
 				-- convert space to patterned space
 				word = word:gsub( "%s+", "%%s+" )
-				word = "([%s%p])(" .. word .. ")([%s%p])"
+				word = "([%s%p\001])(" .. word .. ")([%s%p\001])"
 			else
 				-- otherwise, they're doing something weird, and let them do it.
 				-- meaning, they can use lua patterns. we just add the spaces
@@ -196,7 +214,7 @@ function Main.LoadKeywordsConfig()
 				word = word:gsub( "([%(%)])", "%%%1" )
 				
 				-- and match spaces on ends
-				word = "([%s%p])(" .. word .. ")([%s%p])"
+				word = "([%s%p\001])(" .. word .. ")([%s%p\001])"
 				
 			end
 			g_triggers[word] = true
