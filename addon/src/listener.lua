@@ -870,7 +870,8 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 	end
 	
 	-- trp hack for npc emotes skips the filters
-	if event ~= "EMOTE" or Main.StripPipeEmotePrefix( message ) == nil then
+	local pipe = event == "EMOTE" and Main.StripPipeEmotePrefix( message ) ~= nil
+	if not pipe then
 		local block
 		block, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = ChatFrameUtil.ProcessMessageEventFilters( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
 		if block then return end
@@ -896,7 +897,11 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 			end
 		end
 	end
-	
+
+	if pipe then
+		message = Main.HighlightKeywords( message, sender )
+	end
+
 	Main.AddChatHistory( sender, event, message, language, guid, a9, dm_info )
 end
 
