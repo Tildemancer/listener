@@ -24,6 +24,11 @@ local g_triggers = {}
 local g_color    = ""
 
 -------------------------------------------------------------------------------
+-- The player's RP name the triggers were built with.
+--
+local g_rpname
+
+-------------------------------------------------------------------------------
 -- A simple throttle variable to not spam the beep function, since the filter
 -- may be used several times for the same thing. This value is the time when
 -- another beep is allowed, e.g. lastbeep + 0.15 seconds to disallow it 
@@ -77,6 +82,9 @@ function Main.HighlightKeywords( msg, sender )
 
 	-- Don't filter player's own text.
 	if Main.Ambiguate( sender, "all" ) == UnitName("player") then return msg end
+
+	-- Rebuild the triggers when the player's RP name changes
+	if LibRPNames.Get( UnitName("player") ) ~= g_rpname then Main.LoadKeywordsConfig() end
 
 	local original = msg
 	local replaced = {}
@@ -173,6 +181,7 @@ function Main.LoadKeywordsConfig()
 	
 	local oocname   = UnitName('player')
 	local icname, short_icname = LibRPNames.Get( oocname )
+	g_rpname = icname
 	local firstname = short_icname:match( "^%s*(%S+)" ) or ""
 	local lastname  = icname:match( "(%S+)%s*$" ) or ""
 	
