@@ -176,8 +176,9 @@ function Main.LoadKeywordsConfig()
 	local firstname = short_icname:match( "^%s*(%S+)" ) or ""
 	local lastname  = icname:match( "(%S+)%s*$" ) or ""
 	
-	firstname = firstname:gsub( quotepattern, "%%%1" )
-	lastname  = lastname:gsub( quotepattern, "%%%1" )
+	-- Only % needs escaping in a gsub replacement
+	firstname = firstname:gsub( "%%", "%%%%" )
+	lastname  = lastname:gsub( "%%", "%%%%" )
 	
 	for word in Main.db.profile.keywords_string:gmatch( "[^,]+" ) do
 	
@@ -200,8 +201,8 @@ function Main.LoadKeywordsConfig()
 				word = word:gsub( "<lastname>", lastname )
 				word = word:gsub( "<oocname>", oocname )
 				word = word:lower()
-				-- Hyphens match literally
-				word = word:gsub( "%-", "%%-" )
+				-- Escape after the substitutions so names and hyphens match literally
+				word = word:gsub( quotepattern, "%%%1" )
 				
 				word = word:gsub( "%a", function(c)
 					return string.format( "[%s%s]", c:lower(), c:upper() )
