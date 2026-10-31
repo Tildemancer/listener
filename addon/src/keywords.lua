@@ -237,6 +237,24 @@ function Main.LoadKeywordsConfig()
 end
 
 -------------------------------------------------------------------------------
+-- Sender name filter for TRP3's plain NPC emotes ("| text"), which TRP3 draws
+-- in the name slot, leaving the message as " ".
+--
+local function NPCNameFilter( event, name, msg, sender, ... )
+	local trp = TRP3_API and TRP3_API.chat
+	if not trp or not trp.setNPCMessageName then return end
+	local lineID = select( 9, ... )
+	if not canaccessallvalues( msg, sender, lineID ) or msg ~= " " or trp.getNPCMessageID() ~= lineID then return end
+	
+	local text, found = Main.HighlightKeywords( trp.getNPCMessageName(), sender )
+	if not found then return end
+	
+	-- Stored back so TRP3's own filter returns it if it runs after this one
+	trp.setNPCMessageName( text )
+	return text
+end
+
+-------------------------------------------------------------------------------
 -- Initialize this module.
 --
 function Main.InitKeywords()
@@ -244,4 +262,5 @@ function Main.InitKeywords()
 	for i, event in ipairs(CHAT_EVENTS) do
 		ChatFrame_AddMessageEventFilter( "CHAT_MSG_" .. event, ChatFilter );
 	end
+	ChatFrameUtil.AddSenderNameFilter( NPCNameFilter )
 end
