@@ -54,20 +54,19 @@ local CHAT_EVENTS = {
 }
 
 -------------------------------------------------------------------------------
--- Here's our chat filter. 
+-- Highlights keywords in a message and makes the notification.
+-- Returns (msg, found)
 --
-local function ChatFilter( self, event, msg, sender, ... )
-	local bnet = select( 13-2, ... )
-
+function Main.HighlightKeywords( msg, sender )
 	-- Skip if not turned on.
-	if not Main.db.profile.keywords_enable then return end
-	
+	if not Main.db.profile.keywords_enable then return msg end
+
 	local found = false
-	
+
 	-- Don't filter player's own text.
-	if bnet and bnet > 0 and BNIsSelf( bnet ) then return end
-	if Main.Ambiguate( sender, "all" ) == UnitName("player") then return end
-	
+	if Main.Ambiguate( sender, "all" ) == UnitName("player") then return msg end
+
+	local original = msg
 	local replaced = {}
 	
 	-- First we hide any links found, since we don't want to corrupt them.
@@ -126,8 +125,22 @@ local function ChatFilter( self, event, msg, sender, ... )
 		end)
 		
 		-- msg:sub is to remove the spaces we added as padding.
-		return false, msg:sub( 2, msg:len() - 1 ), sender, ...
+		return msg:sub( 2, msg:len() - 1 ), true
 	end
+	return original
+end
+
+-------------------------------------------------------------------------------
+-- Here's our chat filter.
+--
+local function ChatFilter( self, event, msg, sender, ... )
+	-- Don't filter player's own text.
+	local bnet = select( 13-2, ... )
+	if bnet and bnet > 0 and BNIsSelf( bnet ) then return end
+
+	local found
+	msg, found = Main.HighlightKeywords( msg, sender )
+	if found then return false, msg, sender, ... end
 end
 
 -------------------------------------------------------------------------------
