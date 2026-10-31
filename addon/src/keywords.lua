@@ -41,7 +41,8 @@ end
 -- Links first, since they hold color codes of their own
 --
 local HIDDEN_CODES = {
-	"(|cff[0-9a-f]+|H[^|]+|h[^|]+|h|r)";
+	"(|c%x%x%x%x%x%x%x%x|H[^|]+|h[^|]+|h|r)";
+	"(|cn[^:|]+:|H[^|]+|h[^|]+|h|r)";
 	"|c%x%x%x%x%x%x%x%x";
 	"|cn[^:]+:";
 	"|r";
