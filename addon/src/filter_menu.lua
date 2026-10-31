@@ -92,7 +92,7 @@ end
 
 -------------------------------------------------------------------------------
 local function GetHexCode( color )
-	return string.format( "ff%2x%2x%2x", color[1]*255, color[2]*255, color[3]*255 )
+	return string.format( "ff%.2x%.2x%.2x", color[1]*255, color[2]*255, color[3]*255 )
 end
 
 local ENTRY_CHAT_REMAP = { ROLL = "SYSTEM", OFFLINE = "SYSTEM", ONLINE = "SYSTEM", NPC = "MONSTER_SAY" }
