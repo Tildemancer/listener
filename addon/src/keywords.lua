@@ -188,7 +188,8 @@ function Main.LoadKeywordsConfig()
 		if word then
 			-- and now, format the trigger...
 			
-			if not word:find( quotepattern ) then
+			-- Hyphens don't count, so hyphenated names stay plain words
+			if not word:gsub( "%-", "" ):find( quotepattern ) then
 			
 				-- if word doesn't have any special characters, then we
 				-- make our normal substitutions,
@@ -199,6 +200,8 @@ function Main.LoadKeywordsConfig()
 				word = word:gsub( "<lastname>", lastname )
 				word = word:gsub( "<oocname>", oocname )
 				word = word:lower()
+				-- Hyphens match literally
+				word = word:gsub( "%-", "%%-" )
 				
 				word = word:gsub( "%a", function(c)
 					return string.format( "[%s%s]", c:lower(), c:upper() )
