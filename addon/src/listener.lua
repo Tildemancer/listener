@@ -786,8 +786,8 @@ end
 -- Returns true to block the message, false/nil to allow it.
 --
 function Main.ChatFrameFilter( chatFrame, event, message, sender, ... )
-    -- ignore empty sender
-    if not sender or sender == "" then return false end
+    -- ignore empty sender and OnChatMsg's own pass through the chain
+    if chatFrame == ListenerFrame1Chat or not sender or sender == "" then return false end
 
 	-- Text emotes have special handling (realm extraction + poke detection)
 	if event == "CHAT_MSG_TEXT_EMOTE" then
@@ -849,7 +849,6 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 						 
 	if sender == "" then return end
 
-	local filters = ChatFrameUtil and ChatFrameUtil.GetMessageEventFilters(event) or ChatFrame_GetMessageEventFilters(event)
 	event = event:sub( 10 )
 	
 	if event == "EMOTE" then
@@ -870,45 +869,11 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 		end
 	end
 	
-	if filters then -- in a rare case with very little addons, the filter
-	                -- list may actually be nil
-					
-		local skipfilters = false
-
-		if event == "EMOTE" and Main.StripPipeEmotePrefix( message ) ~= nil then
-			-- trp hack for npc emotes
-			skipfilters = true
-		elseif message:sub(1,2) == "'s" and event == "EMOTE" then
-			-- trp hack for 's stuff
-		--	skipfilters = true
-		end
-		
-		if not skipfilters then
-
-			-- FIX: In 11.2.7, the table structure changed
-			-- The keys are now the filter functions themselves
-			for filterFunc, v in next, filters do
-				-- Only call if the key is actually a function
-				if type(filterFunc) == "function" then
-					local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
-					if( block ) then
-						return
-					elseif( na1 and type(na1) == "string" ) then
-						local skip = false
-						if event == "EMOTE" and message:sub(1,2) == "'s" and na1:sub(1,2) ~= "'s" then
-							skip = true -- block out trp's ['s] hack
-						end
-						if event == "EMOTE" and message:sub(1,2) == ", " and na1:sub(1,2) ~= ", " then
-							skip = true -- block out trp's [, ] hack
-						end
-
-						if not skip then
-							message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14
-						end
-					end
-				end
-			end
-		end
+	-- trp hack for npc emotes skips the filters
+	if event ~= "EMOTE" or Main.StripPipeEmotePrefix( message ) == nil then
+		local block
+		block, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = ChatFrameUtil.ProcessMessageEventFilters( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
+		if block then return end
 	end
 
 	-- TRP3 removes leading "'s " from emotes and records the line ID so its
