@@ -882,9 +882,13 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 	-- trp hack for npc emotes skips the filters
 	local pipe = event == "EMOTE" and Main.StripPipeEmotePrefix( message ) ~= nil
 	if not pipe then
-		local block
-		block, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = ChatFrameUtil.ProcessMessageEventFilters( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
+		-- Only the message and the block flag are taken from the chain, for every event
+		-- The sender, guid and the other args stay as the game sent them
+		-- tRP3_RPNameInQuests renames our own sender to the RP name, which made isplayer false in AddChatHistory
+		-- That faded our own text emotes, undoing OnChatMsgTextEmote's sender fix
+		local block, filtered = ChatFrameUtil.ProcessMessageEventFilters( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
 		if block then return end
+		message = filtered
 	end
 
 	-- TRP3 removes leading "'s " from emotes and records the line ID so its
