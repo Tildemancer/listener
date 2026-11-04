@@ -242,7 +242,8 @@ end
 --
 local function NPCNameFilter( event, name, msg, sender, ... )
 	local trp = TRP3_API and TRP3_API.chat
-	if not trp or not trp.setNPCMessageName then return end
+	-- TRP3 only flags NPC lines on CHAT_MSG_EMOTE
+	if event ~= "CHAT_MSG_EMOTE" or not trp or not trp.setNPCMessageName then return end
 	local lineID = select( 9, ... )
 	if not canaccessallvalues( msg, sender, lineID ) or msg ~= " " or trp.getNPCMessageID() ~= lineID then return end
 	
