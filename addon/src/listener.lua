@@ -78,6 +78,16 @@ function Main.FormatIconMarkup( icon, zoom )
 	icon = Main.NormalizeIconPath( icon )
 	if not icon then return "" end
 
+	-- TRP3 stores icons as LibRPMedia icon IDs, and its race icons are atlases
+	local rpmedia = LibStub( "LibRPMedia-1.2", true )
+	if rpmedia and rpmedia:ResolveIconID( icon ) then
+		local source, iconType = rpmedia:ResolveIcon( icon )
+		if iconType == rpmedia.IconType.Atlas then
+			return "|A:" .. source .. ":0:0|a "
+		end
+		icon = source
+	end
+
 	local texture = tostring( icon )
 	if type( icon ) ~= "number" and not texture:match( "^%d+$" ) and not texture:lower():match( "^interface[\\/]" ) then
 		texture = "Interface\\Icons\\" .. texture
