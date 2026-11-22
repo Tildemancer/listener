@@ -293,6 +293,12 @@ def publish_to_curseforge():
       gameVersions.append( latest_retail["id"] )
       print( " - This project is being published to Retail WoW." )
 
+   # Listener: also tag the latest Forever version (type 88568, as BigWigsMods/packager maps it)
+   latest_forever = max( (x for x in version_data if x["gameVersionTypeID"] == 88568), key=lambda x : x["id"] )
+   gameVersions.append( latest_forever["id"] )
+   print( f" - Also publishing to Forever: {latest_forever['id']} - {latest_forever['name']}" )
+   # Listener: ends
+
    releaseType = "release"
    if re.search( "alpha", config['version'], re.IGNORECASE ):
       releaseType = "alpha"
