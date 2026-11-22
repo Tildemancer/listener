@@ -1,6 +1,6 @@
 # Example workflow for manual forgepush.
 # set secret "forgetoken" to your CurseForge API token
-# this will publish using the package.yaml and latest version of forgepush
+# this will publish using the package.yaml and the copy of forgepush in .github
 
 name: publish
 
@@ -32,5 +32,4 @@ jobs:
       - name: Publish
         run: |
           cd $GITHUB_WORKSPACE
-          wget https://raw.githubusercontent.com/tmg-pub/forgepush/main/forgepush.py -O ../forgepush.py
-          python3 ../forgepush.py --yesokay --curse_apitoken ${{secrets.FORGETOKEN}} --publish_curseforge --github_token ${{secrets.GITHUB_TOKEN}} --create_github_release --addonversion ${{github.ref_name}} --github_repo $GITHUB_REPOSITORY
+          python3 .github/forgepush.py --yesokay --curse_apitoken ${{secrets.FORGETOKEN}} --publish_curseforge --github_token ${{secrets.GITHUB_TOKEN}} --create_github_release --addonversion ${{github.ref_name}} --github_repo $GITHUB_REPOSITORY
