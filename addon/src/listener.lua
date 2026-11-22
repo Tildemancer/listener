@@ -1277,6 +1277,8 @@ function Main.FixupName( name )
 	
 	-- (utf8 friendly) capitalize first character
 	name = name:gsub("^[%z\1-\127\194-\244][\128-\191]*", string.upper)
+	-- and the surname's, on Forever ("Given Family")
+	name = name:gsub(" [%z\1-\127\194-\244][\128-\191]*", string.upper)
 	return name
 end
 
