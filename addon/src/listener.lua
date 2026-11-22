@@ -492,7 +492,7 @@ local function CleanPlayerList()
 		end
 		
 		if index == 1 then
-			frame.players[UnitName("player")] = 1
+			frame.players[Main.FullName("player")] = 1
 		end
 	end
 end
@@ -776,7 +776,7 @@ function Main:OnChatMsgTextEmote( event, message, sender, language,
 		-- ahead of ours in the ChatFrame filter chain can rewrite it too).
 		-- Since the GUID already confirms this is our own emote, force the
 		-- sender back to our canonical name so it matches the "self" entry
-		-- in the player filter (players[UnitName("player")]) instead of
+		-- in the player filter (players[Main.FullName("player")]) instead of
 		-- being treated like a message from an unrecognized player.
 		sender = Main.FullName( "player" )
 	end
@@ -1114,7 +1114,7 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel, d
 	-- Create an entry in the chat history table if we don't have one yet.
 	Main.chat_history[sender] = Main.chat_history[sender] or {}
 	
-	local isplayer = sender == UnitName("player") 
+	local isplayer = sender == Main.FullName("player") 
 	                 or event == "WHISPER_INFORM" 
 					 or sender:match( "^@.+%-self$" )
 	

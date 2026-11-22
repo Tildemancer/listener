@@ -1840,7 +1840,7 @@ function Me.InitOptions( index )
 	data.font  = data.font or {}
 	
 	-- we might want to make an option for this.
-	data.players[ UnitName("player") ] = 1
+	data.players[ Main.FullName("player") ] = 1
 	data.players[ "Guild" ] = 1
 end
 

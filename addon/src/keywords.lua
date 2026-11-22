@@ -81,10 +81,10 @@ function Main.HighlightKeywords( msg, sender )
 	local found = false
 
 	-- Don't filter player's own text.
-	if Main.Ambiguate( sender, "all" ) == UnitName("player") then return msg end
+	if Main.Ambiguate( sender, "all" ) == Main.FullName("player") then return msg end
 
 	-- Rebuild the triggers when the player's RP name changes
-	if LibRPNames.Get( UnitName("player") ) ~= g_rpname then Main.LoadKeywordsConfig() end
+	if LibRPNames.Get( Main.FullName("player") ) ~= g_rpname then Main.LoadKeywordsConfig() end
 
 	local original = msg
 	local replaced = {}
@@ -180,7 +180,7 @@ function Main.LoadKeywordsConfig()
 	local quotepattern = '(['..("%^$().[]*+-?"):gsub("(.)", "%%%1")..'])'
 	
 	local oocname   = UnitName('player')
-	local icname, short_icname = LibRPNames.Get( oocname )
+	local icname, short_icname = LibRPNames.Get( Main.FullName("player") )
 	g_rpname = icname
 	local firstname = short_icname:match( "^%s*(%S+)" ) or ""
 	local lastname  = icname:match( "(%S+)%s*$" ) or ""
