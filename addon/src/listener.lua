@@ -1025,9 +1025,12 @@ end
 -- ingame name if they are on the same realm, or name-realm if they are
 -- on a different realm.
 --
+-- Forever has no realms: UnitName's second value is the surname
+-- Its chat events name the sender "Given Family"
+local NAME_SEPARATOR = RegionalUniqueNamesEnabled and RegionalUniqueNamesEnabled() and " " or "-"
 function Main.FullName( unit )
 	local n, r = UnitName( unit )
-	if r and r ~= "" then return n .. "-" .. r end
+	if r and r ~= "" then return n .. NAME_SEPARATOR .. r end
 	return n
 end
 
