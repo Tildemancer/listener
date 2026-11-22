@@ -309,10 +309,11 @@ end
 -- works on any client.
 --
 -- For roll results... English is "%s rolls %d (%d-%d)"
+-- The name is (.+), as Forever's are "Given Family"
 local SYSTEM_ROLL_PATTERN = RANDOM_ROLL_RESULT 
 
 -- Convert to a pattern.
-SYSTEM_ROLL_PATTERN = SYSTEM_ROLL_PATTERN:gsub( "%%%d?$?s", "(%%S+)" )
+SYSTEM_ROLL_PATTERN = SYSTEM_ROLL_PATTERN:gsub( "%%%d?$?s", "(.+)" )
 SYSTEM_ROLL_PATTERN = SYSTEM_ROLL_PATTERN:gsub( "%%%d?$?d", "(%%d+)" )
 SYSTEM_ROLL_PATTERN = SYSTEM_ROLL_PATTERN:gsub( "%(%(%%%d?$?d%+%)%-%(%%%d?$?d%+%)%)", "%%((%%d+)%%-(%%d+)%%)" ) -- this is what we call voodoo?
 
@@ -323,8 +324,8 @@ SYSTEM_ONLINE_PATTERN = SYSTEM_ONLINE_PATTERN:gsub( "%.", "%%." )
 
 -- English is "%s has gone offline."
 local SYSTEM_OFFLINE_PATTERN = ERR_FRIEND_OFFLINE_S
-SYSTEM_OFFLINE_PATTERN = SYSTEM_OFFLINE_PATTERN:gsub( "%%s", "(%%S+)" )
 SYSTEM_OFFLINE_PATTERN = SYSTEM_OFFLINE_PATTERN:gsub( "%.", "%%." )
+SYSTEM_OFFLINE_PATTERN = SYSTEM_OFFLINE_PATTERN:gsub( "%%s", "(.+)" )
 
 -------------------------------------------------------------------------------
 -- Here's the layout of the chat history database.
