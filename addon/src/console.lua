@@ -31,6 +31,11 @@ function SlashCmdList.LISTENER( msg )
 	for i in string.gmatch( msg, "%S+" ) do
 		table.insert( args, i )
 	end
+	-- Forever names are "Given Family", so there it's everything after the command
+	local name = args[2]
+	if RegionalUniqueNamesEnabled and RegionalUniqueNamesEnabled() then
+		name = msg:match( "^%s*%S+%s+(%S.-)%s*$" )
+	end
 	
 	if args[1] == nil then
 		Main.OpenConfig()
@@ -45,15 +50,15 @@ function SlashCmdList.LISTENER( msg )
 		
 	elseif args[1] == "add" or args[1] == L["add"] then
 	
-		Main.ToggleCommand( args[2], "add" )
+		Main.ToggleCommand( name, "add" )
 		
 	elseif args[1] == "remove" or args[1] == L["remove"] then
 	
-		Main.ToggleCommand( args[2], "remove" )
+		Main.ToggleCommand( name, "remove" )
 		
 	elseif args[1] == "toggle" or args[1] == L["toggle"] then
 	
-		Main.ToggleCommand( args[2], "toggle" )
+		Main.ToggleCommand( name, "toggle" )
 	
 	elseif args[1] == "show" or args[1] == L["show"] then
 	
