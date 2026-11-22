@@ -21,7 +21,7 @@
 -- software without specific prior written permission.
 -----------------------------------------------------------------------------^-
 
-local VERSION = 2
+local VERSION = 3
 
 -------------------------------------------------------------------------------
 -- LibRPNames is the public API. Internal is our "private" namespace to work 
@@ -279,12 +279,13 @@ function Me.GetTRP3Name( toon )
 	end
 	
 	-- "unit id" in this case is a fully qualified toon name. TRP3 calls them
-	--  that, so we're using the same term name here. If the realm is missing
-	--  we can fetch it from TRP3's globals. Getting the player's realm name
-	--  natively seems to be a bit of a pain in the ass otherwise.
+	--  that, so we're using the same term name here. A bare name is "Name"
+	--  on realm clients and "Given Family" on Forever, which has no realms;
+	--  TRP3 qualifies either for the client it's on.
 	local unit_id = toon
 	if not unit_id:find( "-" ) then
-		unit_id = unit_id .. "-" .. TRP3_API.globals.player_realm_id
+		unit_id = TRP3_NameUtil.GetQualifiedNameFromString( unit_id )
+		if not unit_id then return end
 	end
 	
 	-- There's two profile sources, and that's the player's own, and other
