@@ -1036,6 +1036,18 @@ function Main.FullName( unit )
 end
 
 -------------------------------------------------------------------------------
+-- Shifts t by the realm clock's offset from the local one when Server Time is on
+-- GetGameTime has no date, so the offset can be a day out and only the time of day is right
+-- Rounded to 15 minutes, the finest zone offset, which also absorbs a clock a minute off
+--
+function Main.StampTime( t )
+	if not Main.db.profile.frame.server_time then return t end
+	local h, m = GetGameTime()
+	local now = date( "*t" )
+	return t + math.floor( ((h - now.hour) * 60 + m - now.min) / 15 + 0.5 ) * 900
+end
+
+-------------------------------------------------------------------------------
 -- Substitute URLs found within a message with hyperlink codes.
 --
 local function Linkify( msg )

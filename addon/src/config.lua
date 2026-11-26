@@ -391,6 +391,7 @@ local DB_DEFAULTS = {
 			--  [5] = MM
 			--
 			timestamps = 0;
+			server_time = false;
 			
 			---------------------------------------------------------
 			-- Inherited option.
@@ -1022,6 +1023,19 @@ Main.config_options = {
 					end;
 					get = function( info ) 
 						return Main.db.profile.frame.timestamps 
+					end;
+				};
+				server_time = {
+					order = 33;
+					name  = L["Server Time"];
+					desc  = L["Show timestamps in the realm's time instead of your computer's."];
+					type  = "toggle";
+					get   = function( info )
+						return Main.db.profile.frame.server_time
+					end;
+					set   = function( info, val )
+						Main.db.profile.frame.server_time = val
+						RefreshAllChat()
 					end;
 				};
 				readmark_color = FrameColorOption( 40, L["Readmark Color"], L['Color for the line that separates "new" messages. (Set to transparent to disable.)'], "readmark" );

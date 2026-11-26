@@ -341,7 +341,7 @@ function Me:FormatChatMessage( e )
 		end
 	else
 		-- use absolute stamp
-		stamp = date( "%H:%M", e.t )
+		stamp = date( "%H:%M", Main.StampTime( e.t ) )
 	end
 	
 	if self.frameopts.timestamp_brackets then

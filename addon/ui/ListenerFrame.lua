@@ -497,7 +497,7 @@ function Method:FormatChatMessage( e )
 	local stamp = ""
 	local ts = Main.db.profile.frame.timestamps
 	if TIMESTAMP[ts] then
-		stamp = "|cff808080" .. TIMESTAMP[ts](e.t) .. "|r" 
+		stamp = "|cff808080" .. TIMESTAMP[ts](Main.StampTime(e.t)) .. "|r" 
 	end
 	
 	local custom_speaker = e.dmn ~= nil
